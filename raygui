@@ -1,0 +1,195 @@
+-- 创建主屏幕GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RayGUISim"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- 创建主窗口
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150) -- 屏幕中央
+mainFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- 创建黑色圆形按钮
+local circleButton = Instance.new("TextButton")
+circleButton.Size = UDim2.new(0, 40, 0, 40)
+circleButton.Position = UDim2.new(1, 10, 0, 10) -- 窗口右侧
+circleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+circleButton.Text = "枫"
+circleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+circleButton.TextSize = 20
+circleButton.BorderSizePixel = 0
+circleButton.ZIndex = 2
+circleButton.Parent = screenGui
+
+-- 使圆形按钮变为圆形
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = circleButton
+
+-- 窗口状态
+local minimized = false
+local originalSize = mainFrame.Size
+local originalPosition = mainFrame.Position
+
+-- 点击圆形按钮的事件
+circleButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    
+    if minimized then
+        -- 缩小窗口
+        mainFrame.Size = UDim2.new(0, 0, 0, 0)
+        mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    else
+        -- 恢复窗口
+        mainFrame.Size = originalSize
+        mainFrame.Position = originalPosition
+    end
+end)
+
+-- 拖动功能
+local dragging = false
+local dragInput, dragStart, startPos
+
+circleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = circleButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+circleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        circleButton.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- 创建标签系统
+local function createTab(name, icon, premiumOnly)
+    local tab = {
+        Name = name,
+        Icon = icon,
+        PremiumOnly = premiumOnly,
+        Elements = {}
+    }
+    
+    function tab:AddButton(buttonInfo)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 150, 0, 30)
+        button.Position = UDim2.new(0, 10, 0, 40 + (#self.Elements * 40))
+        button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.Text = buttonInfo.Name
+        button.Parent = mainFrame
+        
+        button.MouseButton1Click:Connect(function()
+            buttonInfo.Callback()
+        end)
+        
+        table.insert(self.Elements, {
+            Type = "Button",
+            Instance = button,
+            Info = buttonInfo
+        })
+    end
+    
+    function tab:AddToggle(toggleInfo)
+        local toggleFrame = Instance.new("Frame")
+        toggleFrame.Size = UDim2.new(0, 150, 0, 30)
+        toggleFrame.Position = UDim2.new(0, 10, 0, 40 + (#self.Elements * 40))
+        toggleFrame.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+        toggleFrame.BorderSizePixel = 0
+        toggleFrame.Parent = mainFrame
+        
+        local toggleButton = Instance.new("TextButton")
+        toggleButton.Size = UDim2.new(0, 30, 0, 30)
+        toggleButton.Position = UDim2.new(0, 0, 0, 0)
+        toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        toggleButton.Text = toggleInfo.Default and "X" or ""
+        toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        toggleButton.Parent = toggleFrame
+        
+        local toggleLabel = Instance.new("TextLabel")
+        toggleLabel.Size = UDim2.new(0, 115, 0, 30)
+        toggleLabel.Position = UDim2.new(0, 35, 0, 0)
+        toggleLabel.BackgroundTransparency = 1
+        toggleLabel.Text = toggleInfo.Name
+        toggleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+        toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        toggleLabel.Parent = toggleFrame
+        
+        local value = toggleInfo.Default
+        
+        toggleButton.MouseButton1Click:Connect(function()
+            value = not value
+            toggleButton.Text = value and "X" or ""
+            toggleInfo.Callback(value)
+        end)
+        
+        table.insert(self.Elements, {
+            Type = "Toggle",
+            Instance = toggleFrame,
+            Value = value,
+            Info = toggleInfo
+        })
+    end
+    
+    return tab
+end
+
+-- 创建标签
+local Tab = createTab("Tab 1", "rbxassetid://4483345998", false)
+
+-- 添加按钮
+Tab:AddButton({
+    Name = "穿墙",
+    Callback = function()
+        print("按钮被点击了!")
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/TtmScripter/OtherScript/main/Noclip"))()
+})
+
+-- 添加复选框
+Tab:AddToggle({
+    Name = "示例复选框",
+    Default = false,
+    Callback = function(Value)
+        print("复选框状态:", Value)
+
+        -- 这里可以放入loadstring代码
+        -- if Value then
+        --     loadstring(game:HttpGet("https://example.com/toggle_on.lua"))()
+        -- else
+        --     loadstring(game:HttpGet("https://example.com/toggle_off.lua"))()
+        -- end
+    end
+})
+
+-- 添加标题
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+title.Text = "Tab 1"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Parent = mainFrame
