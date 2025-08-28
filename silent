@@ -1,0 +1,29 @@
+
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/XiaoYunCN/UWU/main/Library%2FSilent%20ui'))()
+
+
+local Window = Library:new("枫脚本")
+
+
+local MainTab = Window:Tab("通用", '123456')
+local PlayerTab = Window:Tab("玩家", '123457')
+
+
+local MovementSection = MainTab:section("移动功能", true)
+
+MovementSection:Button("spy", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/useranewrff/roblox/main/spy%E6%B1%89%E5%8C%96%20(1).txt'))()
+
+
+
+local CharacterSection = PlayerTab:section("角色设置", true)
+
+CharacterSection:Button("重置角色", function()
+    game.Players.LocalPlayer.Character:BreakJoints()
+end)
+
+CharacterSection:Dropdown("隐身工具", "Tool", {"隐身剑", "隐身枪"}, function(selected)
+    print("使用: "..selected)
+end)
+
+
