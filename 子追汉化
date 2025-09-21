@@ -1,5 +1,8 @@
 local Translations = {
-   --["这里填要替换的英文"] = "这里填中文",
+   --["这里填要替换的英文"] = "这里填中文"
+    ["Target settings"] = "目标设置",
+    ["ignore invisible"] = "忽略隐形目标",
+    ["ignore behind walls"] = "忽略墙后目标",
     ["Combat"] = "战斗",
     ["Blatant"] = "一些自带的通用脚本",
     ["Render"] = "主要功能",
